@@ -1,8 +1,27 @@
+import re
 import os
 import json
+import unicodedata
 
 import bs4
 import requests
+
+def slugify(value, allow_unicode=False):
+    """
+    Taken from https://github.com/django/django/blob/master/django/utils/text.py
+    Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
+    dashes to single dashes. Remove characters that aren't alphanumerics,
+    underscores, or hyphens. Convert to lowercase. Also strip leading and
+    trailing whitespace, dashes, and underscores.
+    """
+    value = str(value)
+    if allow_unicode:
+        value = unicodedata.normalize('NFKC', value)
+    else:
+        value = unicodedata.normalize('NFKD', value)
+        value = value.encode('ascii', 'ignore').decode('ascii')
+    value = re.sub(r'[^\w\s-]', '', value.lower())
+    return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 
 class Crawler:
@@ -80,14 +99,13 @@ class Crawler:
             a = li.find('a', {'data-posterid': True})
             title = li.select('div[class*=prestitle]')[0].text.strip()
             poster_id = a.get('data-posterid')
+            stitle = slugify(title)
             poster_path = os.path.join('posters', f'{title}.png')
             paper_path = os.path.join('papers', f'{title}.pdf')
-            if os.path.exists(poster_path) and \
-               os.path.exists(paper_path):
+            if os.path.exists(poster_path) and os.path.exists(paper_path):
                 continue
             paper = self.get_info(poster_id, title)
-            print(f'{i + 1}/{len(lis)}: {paper["title"]}')
-            title = paper['title']
+            print(f'{i + 1}/{len(lis)}: {title}')
             self.save_content(paper['poster'], poster_path)
             self.save_content(paper['pdf'], paper_path)
             papers[poster_id] = paper
