@@ -6,6 +6,7 @@ import unicodedata
 import bs4
 import requests
 
+
 def slugify(value, allow_unicode=False):
     """
     Taken from https://github.com/django/django/blob/master/django/utils/text.py
@@ -100,8 +101,8 @@ class Crawler:
             title = li.select('div[class*=prestitle]')[0].text.strip()
             poster_id = a.get('data-posterid')
             stitle = slugify(title)
-            poster_path = os.path.join('posters', f'{title}.png')
-            paper_path = os.path.join('papers', f'{title}.pdf')
+            poster_path = os.path.join('posters', f'{stitle}.png')
+            paper_path = os.path.join('papers', f'{stitle}.pdf')
             if os.path.exists(poster_path) and os.path.exists(paper_path):
                 continue
             paper = self.get_info(poster_id, title)
